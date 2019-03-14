@@ -2,7 +2,7 @@
 import java.io.*;
 import java.util.*;
 
-public class cnt {
+public class Main {
 	
 	public static HashMap<String, Integer> hash = new HashMap<String, Integer>();
 	

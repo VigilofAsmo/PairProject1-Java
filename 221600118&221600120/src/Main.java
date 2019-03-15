@@ -1,113 +1,93 @@
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
 
-import java.io.*;
-import java.util.*;
 
 public class Main {
 	
-	public static HashMap<String, Integer> hash = new HashMap<String, Integer>();
+	static String path;
 	
-	public static void  main(String []args) {
+	public static void main(String[] args) {
 		Scanner scan = new Scanner(System.in);
-		System.out.print("Please input the absolutely path!\n");
+		path = scan.nextLine();
+	
 		
-		String path = scan.nextLine();
-		readFile(path);
+		int num=CountChar.getNumber(path);
+		int lines=CountLine.getLine(path);
+		HashMap<String, Integer> hash=CountWords.getWords(path);
+		int words=0;
 		
+		List<KV> kvs=new ArrayList<KV>();
+        
+        for(Map.Entry<String, Integer> entry : hash.entrySet()) {
+        	kvs.add(new KV(entry.getKey(),entry.getValue()));
+        	words+=entry.getValue();
+        }
+
+        Collections.sort(kvs, new Comparator<KV>() {
+            public int compare(KV arg0, KV arg1) {
+                if(arg0.getValue()!=arg1.getValue()) {
+                	return -arg0.getValue().compareTo(arg1.getValue());
+                }else {
+                	return arg0.getKey().compareTo(arg1.getKey());
+                }
+            }
+        });
+        String msg="characters: "+num+"\nwords: "+words+"\nlines: "+lines+"\n";
+        
+        for (KV kv : kvs) {
+        	msg+="<"+kv.getKey()+">: "+kv.getValue()+"\n";
+        }
+		
+        try {
+        	writeFile(msg);
+        }catch(Exception e) {
+        	e.printStackTrace();
+        }
+        
 		scan.close();
 	}
 	
-	public static void getLine(BufferedReader br) {}
-	
-	public static void readFile(String path) {
-        int num=0,lines=0,words=0,t=0;
-        try{	
-        	FileReader reader = new FileReader(path);
-            BufferedReader br = new BufferedReader(reader);
-            String line;
-          
-            char c[];
+	public static void writeFile(String msg) throws Exception {
+        
+        //1:使用File类创建一个要操作的文件路径
+        File file = new File("C:/Users/李子琪/Desktop/测试样例/result.txt"); 
+        if(!file.getParentFile().exists()){ //如果文件的目录不存在
+            file.getParentFile().mkdirs(); //创建目录
             
-            boolean bline=false;
-            
-            while ((line = br.readLine()) != null) {
-            	num++;
-            	bline=false;
-            	c=line.toCharArray();
-            	for(int i=0;i<c.length;i++) {
-            		int ch=(int)c[i];
-            		if(ch>=0&&ch<=127) num++;
-            		if(ch>=33&&ch<127) bline=true;
-            	}
-            	
-            	System.out.println(line);
-                if(bline) lines++;
-            }
-            
-            System.out.println("num:"+num);
-            
-            System.out.println("lines:"+lines);
-           
-            System.out.println("words:"+words);
-            System.out.println("t:"+t);
-            for(Map.Entry<String, Integer> entry : hash.entrySet()) {
-            	System.out.println(entry.getKey() + ":" + entry.getValue());
-            }
-            br.close();
-            reader.close();
-        } catch (IOException e) {
-            e.printStackTrace();
         }
+        
+        //2: 实例化OutputString 对象
+        OutputStream output = new FileOutputStream(file);
+        
+        //3: 准备好实现内容的输出
+        
+        byte data[] = msg.getBytes();
+        output.write(data);
+        //4: 资源操作的最后必须关闭
+        output.close();
+        
     }
-	public static int getWord(String line) {
-		if(line.length()<4) return 0;
-		
-		String theline=line.toLowerCase();
-		
-		char c[]=theline.toCharArray();
-		int n=0;
-		for(int i=0;i<c.length;i++) {
-			int ch=(int)c[i];
-			if(isaz(ch)) {
-				if(the4(c,i)) {
-					int last=0;
-					n++;
-					for(int j=i+4;j<c.length;j++) {
-						last=j;
-						if(!isaz((int)c[last])&&!isnum((int)c[last])) {
-							n+=getWord(theline.substring(last,theline.length()));
-							break;
-						}
-					}
-					if(last==c.length-1) last++;
-					String word=theline.substring(i,last);
-					if(hash.containsKey(word)) {
-						int nn=hash.get(word);
-						hash.put(word, nn+1);
-					}
-					else hash.put(word, 1);
-					break;
-				}
-			}
+	private static class KV{
+		String key;
+		Integer value;
+		public KV(String key,Integer value) {
+			this.key=key;
+			this.value=value;
 		}
-		return n;
+		public String getKey() {
+			return this.key;
+		}
+		public Integer getValue() {
+			return this.value;
+		}
 	}
 
-	public static boolean isaz(int c) {
-		return c>=97&&c<=122;
-	}
-	public static boolean isnum(int c) {
-		return c>=48&&c<=57;
-	}
-	
-	public static boolean the4(char[] line,int index) {
-		int n=0;
-		for(int i=index+1;i<line.length;i++) {
-			int ch=(int)line[i];
-			if(isaz(ch)) {
-				if(++n==3) return true;
-			}
-			else return false;
-		}
-		return false;
-	}
 }
